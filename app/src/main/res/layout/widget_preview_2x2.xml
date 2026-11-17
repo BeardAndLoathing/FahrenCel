@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sample shown in the widget picker. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_preview_bg"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="12dp">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Jerusalem"
+        android:textColor="#C8FFFFFF"
+        android:textSize="11sp"
+        android:maxLines="1" />
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/ic_sunny"
+        android:tint="#FFC94D"
+        android:importantForAccessibility="no" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="72°F"
+        android:textColor="#FFFFFF"
+        android:textSize="26sp"
+        android:maxLines="1"
+        android:textStyle="bold" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="22°C"
+        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:maxLines="1"
+        android:textStyle="bold" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="H 75°F · 24°C"
+        android:textColor="#C8FFFFFF"
+        android:textSize="10sp"
+        android:maxLines="1" />
+</LinearLayout>

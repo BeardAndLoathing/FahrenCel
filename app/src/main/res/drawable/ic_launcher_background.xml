@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FahrenCel icon background: a smooth warm-to-cool blend (°F to °C) with a soft flowing band. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:pathData="M0,0 L108,0 L108,108 L0,108 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="8" android:startY="0"
+                android:endX="100" android:endY="108">
+                <item android:offset="0.00" android:color="#FFFFC12E" />
+                <item android:offset="0.30" android:color="#FFFF5B1F" />
+                <item android:offset="0.47" android:color="#FFE8336D" />
+                <item android:offset="0.54" android:color="#FF8A3FE6" />
+                <item android:offset="0.72" android:color="#FF2C5BFF" />
+                <item android:offset="1.00" android:color="#FF12B5F5" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Soft flowing band where warm meets cool -->
+    <path android:pathData="M0,86 C26,70 34,52 54,50 C74,48 82,30 108,18 L108,34 C86,44 76,62 56,66 C36,70 26,86 0,100 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0" android:startY="100"
+                android:endX="108" android:endY="18">
+                <item android:offset="0.0" android:color="#00FFFFFF" />
+                <item android:offset="0.5" android:color="#2EFFFFFF" />
+                <item android:offset="1.0" android:color="#00FFFFFF" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>

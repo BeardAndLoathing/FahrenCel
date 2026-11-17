@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="dw_wall_bg">#FF232A38</color>
+    <color name="dw_wall_text">#FFFFFFFF</color>
+    <color name="dw_wall_dim">#C2FFFFFF</color>
+</resources>

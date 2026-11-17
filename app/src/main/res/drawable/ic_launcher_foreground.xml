@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "°F" on the warm side and "°C" on the cool side. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- °F: enlarged 1.25x around its center and moved to (39.5, 40.5) -->
+    <group
+        android:pivotX="38.6"
+        android:pivotY="39.7"
+        android:scaleX="1.25"
+        android:scaleY="1.25"
+        android:translateX="0.9"
+        android:translateY="0.8">
+        <path
+            android:pathData="M31.4,31.6 m-2.7,0 a2.7,2.7 0 1,0 5.4,0 a2.7,2.7 0 1,0 -5.4,0"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="1.9" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M36.5,29.5 L48.5,29.5 L48.5,33.3 L40.4,33.3 L40.4,38.6 L47,38.6 L47,42.4 L40.4,42.4 L40.4,50.5 L36.5,50.5 Z" />
+    </group>
+    <!-- °C: enlarged 1.25x around its center and moved to (68.5, 67.5) -->
+    <group
+        android:pivotX="68.5"
+        android:pivotY="68.4"
+        android:scaleX="1.25"
+        android:scaleY="1.25"
+        android:translateX="0"
+        android:translateY="-0.9">
+        <path
+            android:pathData="M60.6,59.6 m-2.7,0 a2.7,2.7 0 1,0 5.4,0 a2.7,2.7 0 1,0 -5.4,0"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="1.9" />
+        <path
+            android:pathData="M76.2,61.6 A8.6,8.6 0 1,0 76.2,74.4"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeLineCap="round"
+            android:strokeWidth="4.2" />
+    </group>
+</vector>

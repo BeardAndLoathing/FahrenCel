@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "Match my wallpaper" colors. Android 12+ uses the wallpaper's colors (see values-v31). -->
+<resources>
+    <color name="dw_wall_bg">#FFE3EAF5</color>
+    <color name="dw_wall_text">#FF14171F</color>
+    <color name="dw_wall_dim">#B314171F</color>
+</resources>

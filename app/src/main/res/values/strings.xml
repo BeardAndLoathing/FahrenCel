@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">FahrenCel</string>
+    <string name="widget_description">Weather in °F and °C at the same time</string>
+    <string name="widget_1x1_desc">Tiny: temperature in °F and °C</string>
+    <string name="widget_2x1_desc">Slim: temperature and conditions</string>
+    <string name="widget_3x1_desc">Bar: temperature, high and low</string>
+    <string name="widget_4x1_desc">Wide bar: temperature, feels-like, high and low</string>
+    <string name="widget_2x2_desc">Square: today at a glance</string>
+    <string name="weather_widget_info_desc">Medium: now, warnings and forecast</string>
+    <string name="widget_3x3_desc">Large: now, hourly and 3-day forecast</string>
+    <string name="widget_4x3_desc">Large: now, hourly and 4-day forecast</string>
+</resources>

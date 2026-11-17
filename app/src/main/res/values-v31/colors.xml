@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material You: these follow the phone's wallpaper colors and update automatically. -->
+<resources>
+    <color name="dw_wall_bg">@android:color/system_accent1_100</color>
+    <color name="dw_wall_text">@android:color/system_accent1_900</color>
+    <color name="dw_wall_dim">@android:color/system_neutral2_700</color>
+</resources>
