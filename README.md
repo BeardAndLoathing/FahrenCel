@@ -17,15 +17,9 @@ The APK lands in `app/build/outputs/apk/debug/`.
 
 ## Making a release
 
-Push a tag starting with `v`, for example:
-
-```
-git tag v0.2
-git push origin v0.2
-```
-
-GitHub builds the APK and attaches it to a new release automatically
-(see `.github/workflows/build.yml`).
+On GitHub, go to **Releases > Draft a new release**, create a tag like `v0.2`, and click
+**Publish release**. GitHub builds the APK and attaches it to the release within a few
+minutes (see `.github/workflows/build.yml`).
 
 Weather data by [Open-Meteo.com](https://open-meteo.com/) (CC BY 4.0).
 Icons from Google's Material Symbols.

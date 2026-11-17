@@ -1,13 +1,14 @@
 # Builds the FahrenCel APK on GitHub.
 # - Every push to main: builds the APK and keeps it as a downloadable artifact on the run.
-# - Pushing a tag like v0.2 (or creating a release on GitHub): builds and attaches
-#   the APK to that release, so testers get a simple download link.
+# - Publishing a release on GitHub (Releases > Draft a new release, tag like v0.2):
+#   builds and attaches the APK to that release, so testers get a simple download link.
 name: Build APK
 
 on:
   push:
     branches: [main]
-    tags: ["v*"]
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
