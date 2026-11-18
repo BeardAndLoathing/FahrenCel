@@ -9,8 +9,13 @@ import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.state.updateAppWidgetState
 
-/** The one FahrenCel widget. It can be resized from 1x1 to 4x3 (and beyond). */
-class WeatherWidgetReceiver : GlanceAppWidgetReceiver() {
+/**
+ * The FahrenCel widget. The main entry is 4x2; the sized entries below exist for home
+ * screens that can't resize widgets (many Xiaomi, Huawei and older launchers), so people
+ * can pick the size up front. All of them draw the same widget and can still be resized
+ * where the home screen allows it.
+ */
+open class WeatherWidgetReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = WeatherWidget()
 
     override fun onEnabled(context: Context) {
@@ -21,16 +26,33 @@ class WeatherWidgetReceiver : GlanceAppWidgetReceiver() {
 
     override fun onDisabled(context: Context) {
         super.onDisabled(context)
-        WeatherScheduler.cancel(context)
+        // Only stop background updates when no FahrenCel widget of any size is left.
+        if (PlacedWidgets.ids(context).isEmpty()) WeatherScheduler.cancel(context)
     }
 }
 
+class Widget1x1Receiver : WeatherWidgetReceiver()
+class Widget2x1Receiver : WeatherWidgetReceiver()
+class Widget4x1Receiver : WeatherWidgetReceiver()
+class Widget2x2Receiver : WeatherWidgetReceiver()
+class Widget4x3Receiver : WeatherWidgetReceiver()
+
+/** The sizes offered in the app's "Add a widget" picker. */
+enum class WidgetSize(val cols: Int, val rows: Int, val label: String, val receiver: Class<out WeatherWidgetReceiver>) {
+    S1x1(1, 1, "Tiny", Widget1x1Receiver::class.java),
+    S2x1(2, 1, "Slim", Widget2x1Receiver::class.java),
+    S4x1(4, 1, "Wide bar", Widget4x1Receiver::class.java),
+    S2x2(2, 2, "Square", Widget2x2Receiver::class.java),
+    S4x2(4, 2, "Medium", WeatherWidgetReceiver::class.java),
+    S4x3(4, 3, "Large", Widget4x3Receiver::class.java),
+}
+
 object PlacedWidgets {
-    /** IDs of every FahrenCel widget currently on the home screen. */
-    fun ids(ctx: Context): List<Int> =
-        AppWidgetManager.getInstance(ctx)
-            .getAppWidgetIds(ComponentName(ctx, WeatherWidgetReceiver::class.java))
-            .toList()
+    /** IDs of every FahrenCel widget currently on the home screen, any size. */
+    fun ids(ctx: Context): List<Int> {
+        val mgr = AppWidgetManager.getInstance(ctx)
+        return WidgetSize.values().flatMap { mgr.getAppWidgetIds(ComponentName(ctx, it.receiver)).toList() }
+    }
 
     /** Approximate size in home-screen cells, e.g. 4 x 2. */
     fun cells(ctx: Context, appWidgetId: Int): Pair<Int, Int> {

@@ -1,10 +1,11 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 
 package com.example.dualweather
 
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.layout.ContentScale
@@ -21,6 +22,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -38,6 +41,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -187,13 +191,113 @@ private fun appTint(c: Condition): Color {
     return if (isSystemInDarkTheme()) tint else Color(tint.red * 0.7f, tint.green * 0.7f, tint.blue * 0.7f)
 }
 
-private fun pinWidget(ctx: Context, placeId: String) {
-    if (!WidgetPin.request(ctx, placeId)) {
+private fun pinWidget(ctx: Context, placeId: String, size: WidgetSize) {
+    if (!WidgetPin.request(ctx, placeId, size)) {
         Toast.makeText(
             ctx,
             "Your home screen doesn't allow this. Long-press the home screen, tap Widgets, and add FahrenCel.",
             Toast.LENGTH_LONG,
         ).show()
+    }
+}
+
+/** Phones whose home screens often can't resize widgets or quietly block "add to home screen". */
+private val strictLaunchers = setOf("xiaomi", "redmi", "poco", "huawei", "honor", "oppo", "vivo", "realme")
+
+private fun isStrictLauncher(): Boolean = Build.MANUFACTURER.lowercase() in strictLaunchers
+
+/**
+ * Returns a function that opens the "Choose a size" picker for a place. Picking a size asks
+ * the home screen to add the widget at that size.
+ */
+@Composable
+private fun rememberAddWidget(): (String) -> Unit {
+    val ctx = LocalContext.current
+    var forPlace by remember { mutableStateOf<String?>(null) }
+    forPlace?.let { placeId ->
+        SizePickerDialog(
+            onPick = { size ->
+                forPlace = null
+                pinWidget(ctx, placeId, size)
+            },
+            onDismiss = { forPlace = null },
+        )
+    }
+    return { forPlace = it }
+}
+
+@Composable
+private fun SizePickerDialog(onPick: (WidgetSize) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        title = { Text("Choose a size") },
+        text = {
+            Column(
+                Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    WidgetSize.values().forEach { size ->
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .width(78.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .clickable { onPick(size) }
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                                .padding(vertical = 10.dp),
+                        ) {
+                            SizeDiagram(size.cols, size.rows)
+                            Spacer(Modifier.height(6.dp))
+                            Text("${size.cols}x${size.rows}", style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                size.label,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+                Text(
+                    "If your home screen lets you resize widgets, you can stretch any of these later. " +
+                        "If it doesn't, remove the widget and add it again in another size.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                if (isStrictLauncher()) {
+                    Text(
+                        "Nothing appears on your home screen? Open Settings > Apps > FahrenCel > " +
+                            "Other permissions and allow \"Home screen shortcuts\", then try again.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary,
+                    )
+                }
+            }
+        },
+    )
+}
+
+/** A 4x3 grid of cells with the chosen size filled in. */
+@Composable
+private fun SizeDiagram(cols: Int, rows: Int) {
+    val empty = MaterialTheme.colorScheme.outlineVariant
+    val full = MaterialTheme.colorScheme.primary
+    Canvas(Modifier.size(width = 52.dp, height = 39.dp)) {
+        val gap = 2.dp.toPx()
+        val cw = (size.width - gap * 3) / 4
+        val ch = (size.height - gap * 2) / 3
+        for (c in 0 until 4) for (r in 0 until 3) {
+            val on = c < cols && r < rows
+            drawRoundRect(
+                color = if (on) full else empty.copy(alpha = 0.5f),
+                topLeft = Offset(c * (cw + gap), r * (ch + gap)),
+                size = Size(cw, ch),
+                cornerRadius = CornerRadius(3.dp.toPx()),
+            )
+        }
     }
 }
 
@@ -287,6 +391,7 @@ private fun PlacePage(
     onLocked: () -> Unit,
 ) {
     val ctx = LocalContext.current
+    val addWidget = rememberAddWidget()
     val data = remember(place.id, tick) { WeatherStore.load(ctx, place.id) }
     val emphasis = remember(tick) { StyleStore.get(ctx).emphasis }
     val cFirst = emphasis.cFirst
@@ -392,7 +497,7 @@ private fun PlacePage(
         }
 
         FilledTonalButton(
-            onClick = { pinWidget(ctx, place.id) },
+            onClick = { addWidget(place.id) },
             modifier = Modifier.fillMaxWidth(),
         ) {
             Icon(painterResource(R.drawable.ic_add_to_home_screen), contentDescription = null, modifier = Modifier.size(18.dp))
@@ -831,6 +936,7 @@ private fun WidgetsTab(isPro: Boolean, tick: Int) {
         resumeTick++
         onPauseOrDispose { }
     }
+    val addWidget = rememberAddWidget()
     val ids = remember(resumeTick, tick) { PlacedWidgets.ids(ctx) }
     val sharedLook = remember(resumeTick) { ThemeStore.looks(ctx, 0).day }
     val style = remember(resumeTick) { StyleStore.get(ctx) }
@@ -904,14 +1010,14 @@ private fun WidgetsTab(isPro: Boolean, tick: Int) {
                 }
             }
         }
-        Button(onClick = { pinWidget(ctx, Places.HERE) }, modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = { addWidget(Places.HERE) }, modifier = Modifier.fillMaxWidth()) {
             Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))
             Text("Add a widget")
         }
         Text(
-            "The widget lands on your home screen, then its editor opens so you can pick " +
-                "the place and look.",
+            "Pick a size, and the widget lands on your home screen. Then its editor opens so you " +
+                "can choose the place and look.",
             style = MaterialTheme.typography.bodySmall,
         )
 
@@ -934,9 +1040,10 @@ private fun WidgetsTab(isPro: Boolean, tick: Int) {
         )
         SectionTitle("Tips")
         listOf(
-            "Resize: long-press a widget on your home screen and drag the dots on its edges.",
+            "Resize: long-press a widget on your home screen and drag the dots on its edges. " +
+                "Some phones (many Xiaomi and Huawei) can't resize, so add the size you want instead.",
             "Edit: tap a widget in Your widgets, or long-press it on your home screen and tap Settings.",
-            "You can also add FahrenCel from your phone's own widget list; its editor opens right after.",
+            "You can also add FahrenCel from your phone's own widget list, where each size is listed.",
         ).forEach { Text("•  $it", style = MaterialTheme.typography.bodyMedium) }
         Spacer(Modifier.height(16.dp))
     }

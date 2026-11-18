@@ -247,14 +247,14 @@ object WidgetPin {
     fun supported(ctx: Context): Boolean =
         AppWidgetManager.getInstance(ctx).isRequestPinAppWidgetSupported
 
-    fun request(ctx: Context, placeId: String): Boolean {
+    fun request(ctx: Context, placeId: String, size: WidgetSize = WidgetSize.S4x2): Boolean {
         val mgr = AppWidgetManager.getInstance(ctx)
         if (!mgr.isRequestPinAppWidgetSupported) return false
         val intent = Intent(ctx, PinResultReceiver::class.java).putExtra(EXTRA_PLACE, placeId)
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or
             (if (Build.VERSION.SDK_INT >= 31) PendingIntent.FLAG_MUTABLE else 0)
-        val callback = PendingIntent.getBroadcast(ctx, placeId.hashCode(), intent, flags)
-        return mgr.requestPinAppWidget(ComponentName(ctx, WeatherWidgetReceiver::class.java), null, callback)
+        val callback = PendingIntent.getBroadcast(ctx, (placeId + size.name).hashCode(), intent, flags)
+        return mgr.requestPinAppWidget(ComponentName(ctx, size.receiver), null, callback)
     }
 }
 

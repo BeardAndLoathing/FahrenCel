@@ -30,17 +30,77 @@
             </intent-filter>
         </activity>
 
-        <!-- The widget. One entry in the picker; resizable from 1x1 up. -->
+        <!-- The main widget (4x2). The sized versions below are for home screens that can't resize. -->
         <receiver
             android:name=".WeatherWidgetReceiver"
             android:exported="true"
-            android:label="@string/app_name">
+            android:label="FahrenCel 4x2">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/weather_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".Widget1x1Receiver"
+            android:exported="true"
+            android:label="FahrenCel 1x1">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_1x1" />
+        </receiver>
+
+        <receiver
+            android:name=".Widget2x1Receiver"
+            android:exported="true"
+            android:label="FahrenCel 2x1">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_2x1" />
+        </receiver>
+
+        <receiver
+            android:name=".Widget4x1Receiver"
+            android:exported="true"
+            android:label="FahrenCel 4x1">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_4x1" />
+        </receiver>
+
+        <receiver
+            android:name=".Widget2x2Receiver"
+            android:exported="true"
+            android:label="FahrenCel 2x2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_2x2" />
+        </receiver>
+
+        <receiver
+            android:name=".Widget4x3Receiver"
+            android:exported="true"
+            android:label="FahrenCel 4x3">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_4x3" />
         </receiver>
 
         <!-- Told which widget was just added from the app's "Add widget" buttons. -->
