@@ -50,7 +50,6 @@ class Widget1x3Receiver : WeatherWidgetReceiver()
 class Widget2x3Receiver : WeatherWidgetReceiver()
 class Widget3x3Receiver : WeatherWidgetReceiver()
 class Widget4x3Receiver : WeatherWidgetReceiver()
-class Widget1x4Receiver : WeatherWidgetReceiver()
 
 /** The sizes offered in the app's "Add a widget" picker. */
 enum class WidgetSize(val cols: Int, val rows: Int, val label: String, val receiver: Class<out WeatherWidgetReceiver>) {
@@ -66,7 +65,6 @@ enum class WidgetSize(val cols: Int, val rows: Int, val label: String, val recei
     S2x3(2, 3, "Tall", Widget2x3Receiver::class.java),
     S3x3(3, 3, "Big square", Widget3x3Receiver::class.java),
     S4x3(4, 3, "Large", Widget4x3Receiver::class.java),
-    S1x4(1, 4, "Tower", Widget1x4Receiver::class.java),
 }
 
 object PlacedWidgets {

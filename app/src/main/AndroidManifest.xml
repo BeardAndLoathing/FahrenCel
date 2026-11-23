@@ -175,18 +175,6 @@
                 android:resource="@xml/widget_3x3" />
         </receiver>
 
-        <receiver
-            android:name=".Widget1x4Receiver"
-            android:exported="true"
-            android:label="FahrenCel 1x4">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_1x4" />
-        </receiver>
-
         <!-- Told which widget was just added from the app's "Add widget" buttons. -->
         <receiver
             android:name=".PinResultReceiver"

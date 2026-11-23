@@ -13,5 +13,4 @@
     <string name="widget_1x3_desc">Tall column: now and the next hours</string>
     <string name="widget_2x3_desc">Tall: now, details and hourly forecast</string>
     <string name="widget_3x3_desc">Big square: now, hourly and 3-day forecast</string>
-    <string name="widget_1x4_desc">Tower: now, next hours and 4 days</string>
 </resources>
