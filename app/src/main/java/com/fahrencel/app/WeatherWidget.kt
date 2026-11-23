@@ -1,6 +1,11 @@
 package com.fahrencel.app
 
 import android.appwidget.AppWidgetManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.RadialGradient
+import android.graphics.Shader
 import android.content.Context
 import android.content.res.Configuration
 import androidx.annotation.DrawableRes
@@ -36,6 +41,7 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
+import androidx.glance.layout.RowScope
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
@@ -49,6 +55,8 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 class WeatherWidget : GlanceAppWidget() {
 
@@ -275,44 +283,64 @@ private fun Icon(@DrawableRes res: Int, description: String?, size: Dp, color: C
 private fun ConditionIcon(c: Condition, size: Dp) =
     Icon(c.iconFor(LocalStyle.current.filledIcons), c.label, size, LocalColors.current.icon(c.tint))
 
-/** Current temperature in °F and °C (and K) on one line, in the chosen order and sizes. */
+/**
+ * The current temperature: the main unit big, the other unit smaller in the weather's color.
+ * [stacked] puts the second unit under the first; otherwise it sits beside it.
+ */
 @Composable
-private fun MainTemps(tempC: Double, kelvin: Boolean, size: Int) {
-    val e = LocalStyle.current.emphasis
-    val (first, second) = Units.pair(tempC, e.cFirst)
-    val small = (size * 0.5f).toInt().coerceAtLeast(10)
-    if (!e.firstBigger) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            TempT(first, tempC, size)
-            Spacer(GlanceModifier.width((size * 0.35f).dp))
-            TempT(second, tempC, size)
-            if (kelvin) {
-                Spacer(GlanceModifier.width((size * 0.35f).dp))
-                TempT(Units.k(tempC), tempC, (size * 0.7f).toInt())
-            }
+private fun HeroTemps(d: WeatherData, kelvin: Boolean, big: Int, small: Int, stacked: Boolean, center: Boolean = false) {
+    val st = LocalStyle.current
+    val c = LocalColors.current
+    val (first, second) = Units.pair(d.tempC, st.emphasis.cFirst)
+    val secondSize = if (st.emphasis.firstBigger) small else (big * 0.85f).toInt()
+    val firstColor = if (st.tempColors) c.temp(d.tempC) else c.text
+    val secondColor = if (st.tempColors) c.temp(d.tempC) else c.icon(d.condition.tint)
+    val kSize = (secondSize * 0.8f).toInt().coerceAtLeast(10)
+    if (stacked) {
+        Column(horizontalAlignment = if (center) Alignment.CenterHorizontally else Alignment.Start) {
+            T(first, big, bold = st.boldNumbers, color = firstColor)
+            T(second, secondSize, color = secondColor)
+            if (kelvin) T(Units.k(d.tempC), kSize, color = c.dim)
         }
     } else {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            TempT(first, tempC, size)
-            Spacer(GlanceModifier.width(8.dp))
-            Column {
-                TempT(second, tempC, small)
-                if (kelvin) TempT(Units.k(tempC), tempC, (small * 0.85f).toInt())
+        Row(verticalAlignment = Alignment.Bottom) {
+            T(first, big, bold = st.boldNumbers, color = firstColor)
+            Spacer(GlanceModifier.width(6.dp))
+            T(second, secondSize, color = secondColor)
+            if (kelvin) {
+                Spacer(GlanceModifier.width(6.dp))
+                T(Units.k(d.tempC), kSize, color = c.dim)
             }
         }
     }
 }
 
-/** °F and °C stacked, for narrow layouts. */
+/** The place name with a pin, if the style shows it. */
 @Composable
-private fun StackedTemps(tempC: Double, kelvin: Boolean, big: Int) {
-    val e = LocalStyle.current.emphasis
-    val (first, other) = Units.pair(tempC, e.cFirst)
-    val second = if (e.firstBigger) (big * 0.6f).toInt() else (big * 0.85f).toInt()
-    TempT(first, tempC, big)
-    TempT(other, tempC, second)
-    if (kelvin) T(Units.k(tempC), (second * 0.75f).toInt().coerceAtLeast(10), color = LocalColors.current.dim)
+private fun CityLine(d: WeatherData, size: Int, center: Boolean = false) {
+    if (!LocalStyle.current.showPlace) return
+    val name = d.city ?: d.area ?: return
+    Row(
+        modifier = if (center) GlanceModifier.fillMaxWidth() else GlanceModifier,
+        horizontalAlignment = if (center) Alignment.CenterHorizontally else Alignment.Start,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(R.drawable.ic_location_on, null, (size + 1).dp, LocalColors.current.dim)
+        Spacer(GlanceModifier.width(2.dp))
+        T(name, size, bold = true, color = LocalColors.current.dim)
+    }
 }
+
+/** A thin line between sections. */
+@Composable
+private fun Divider(top: Dp = 0.dp, bottom: Dp = 0.dp) {
+    Spacer(GlanceModifier.height(top))
+    Box(GlanceModifier.fillMaxWidth().height(1.dp).background(LocalColors.current.panel)) {}
+    Spacer(GlanceModifier.height(bottom))
+}
+
+/** "66°F" -> "66°", for narrow spots that say the unit once. */
+private fun String.noUnit(): String = removeSuffix("F").removeSuffix("C")
 
 /** Whether Celsius leads, per the style settings. */
 @Composable
@@ -344,6 +372,11 @@ private fun WidgetRoot(snap: Snapshot) {
         else -> GlanceModifier.background(ColorProvider(solid(theme)))
     }
     val overlay = ThemeRender.overlayBitmap(theme, wDp, hDp)
+    // Tall, narrow widgets glow from the top middle; the rest from the top left.
+    val narrow = cols == 1 && rows > 1
+    val glow = data?.let {
+        glowBitmap(it.condition.tint, wDp, hDp, if (narrow) 0.5f else 0.18f, if (narrow) 0.36f / rows else 0.12f)
+    }
 
     Box(
         modifier = GlanceModifier
@@ -360,6 +393,14 @@ private fun WidgetRoot(snap: Snapshot) {
                 contentScale = ContentScale.FillBounds,
             )
         }
+        if (glow != null) {
+            Image(
+                provider = ImageProvider(glow),
+                contentDescription = null,
+                modifier = GlanceModifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds,
+            )
+        }
         Box(
             modifier = GlanceModifier.fillMaxSize().padding(pad),
             contentAlignment = Alignment.Center,
@@ -368,10 +409,12 @@ private fun WidgetRoot(snap: Snapshot) {
                 T("Tap to load weather", 12, align = TextAlign.Center)
             } else {
                 when {
-                    cols == 1 -> Tiny(data, kelvin)
+                    cols == 1 && rows == 1 -> Tiny(data, kelvin)
+                    cols == 1 -> Tower(data, kelvin, rows)
                     rows == 1 && cols == 2 -> Strip2(data, kelvin)
                     rows == 1 && cols == 3 -> Strip3(data, kelvin)
                     rows == 1 -> Strip4(data, kelvin)
+                    cols == 2 && rows >= 3 -> Square3(data, kelvin)
                     cols == 2 -> Square2(data, kelvin)
                     rows == 2 -> Medium(data, alert, kelvin, cols)
                     else -> Large(data, alert, kelvin, cols)
@@ -381,13 +424,96 @@ private fun WidgetRoot(snap: Snapshot) {
     }
 }
 
-// ---- 1x1 (and any 1-column size) ----
+// ---- 1x1 ----
 
 @Composable
 private fun Tiny(d: WeatherData, kelvin: Boolean) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        ConditionIcon(d.condition, if (kelvin) 16.dp else 22.dp)
-        StackedTemps(d.tempC, kelvin, if (kelvin) 16 else 18)
+    Column(modifier = GlanceModifier.fillMaxSize()) {
+        ConditionIcon(d.condition, 18.dp)
+        Spacer(GlanceModifier.defaultWeight())
+        HeroTemps(d, kelvin, if (kelvin) 18 else 21, 12, stacked = true)
+        if (!kelvin) CityLine(d, 9)
+    }
+}
+
+// ---- 1x2, 1x3, 1x4 ----
+
+@Composable
+private fun Tower(d: WeatherData, kelvin: Boolean, rows: Int) {
+    val st = LocalStyle.current
+    Column(modifier = GlanceModifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        CityLine(d, 9, center = true)
+        Spacer(GlanceModifier.height(6.dp))
+        ConditionIcon(d.condition, 30.dp)
+        Spacer(GlanceModifier.height(4.dp))
+        HeroTemps(d, kelvin, if (kelvin) 18 else 22, 12, stacked = true, center = true)
+        if (rows == 2) {
+            Spacer(GlanceModifier.defaultWeight())
+            if (st.showHiLo) {
+                Divider(bottom = 5.dp)
+                HiLoLines(d)
+            }
+        } else {
+            Spacer(GlanceModifier.height(6.dp))
+            HiLoLines(d)
+            Spacer(GlanceModifier.defaultWeight())
+            if (st.showHourly) {
+                Divider(bottom = 4.dp)
+                SectionLabel("Next hours")
+                HourRows(d, 4)
+            }
+            if (rows >= 4 && st.showDaily) {
+                Divider(top = 4.dp, bottom = 4.dp)
+                SectionLabel(if (cf()) "Days °C" else "Days °F")
+                DayRows(d, 4)
+            }
+        }
+    }
+}
+
+@Composable
+private fun HiLoLines(d: WeatherData) {
+    if (!LocalStyle.current.showHiLo) return
+    val (a, b) = Units.hiLoPair(d.today.hiC, d.today.loC, cf())
+    T(a, 10, align = TextAlign.Center)
+    T(b, 9, color = LocalColors.current.dim, align = TextAlign.Center)
+}
+
+@Composable
+private fun SectionLabel(text: String) {
+    T(text.uppercase(), 8, color = LocalColors.current.dim)
+    Spacer(GlanceModifier.height(3.dp))
+}
+
+/** Next hour, then every 3 hours (same as the hourly strip). */
+private fun nextHours(d: WeatherData, n: Int): List<Hour> =
+    d.hours.drop(1).filterIndexed { i, _ -> i % 3 == 0 }.take(n)
+
+@Composable
+private fun HourRows(d: WeatherData, n: Int) {
+    nextHours(d, n).forEach { h ->
+        Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            T(d.clock(h.time), 9, color = LocalColors.current.dim)
+            Spacer(GlanceModifier.defaultWeight())
+            ConditionIcon(Condition.fromCode(h.code, h.isDay), 14.dp)
+            Spacer(GlanceModifier.width(4.dp))
+            TempT(Units.pair(h.tempC, cf()).first.noUnit(), h.tempC, 10)
+        }
+        Spacer(GlanceModifier.height(3.dp))
+    }
+}
+
+@Composable
+private fun DayRows(d: WeatherData, n: Int) {
+    d.days.take(n).forEach { day ->
+        Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            T(d.dayName(day.time), 9, bold = true)
+            Spacer(GlanceModifier.defaultWeight())
+            ConditionIcon(Condition.fromCode(day.code, isDay = true), 14.dp)
+            Spacer(GlanceModifier.width(4.dp))
+            T(Units.hiLoPair(day.hiC, day.loC, cf()).first.removeSuffix("°F").removeSuffix("°C"), 10)
+        }
+        Spacer(GlanceModifier.height(3.dp))
     }
 }
 
@@ -396,14 +522,12 @@ private fun Tiny(d: WeatherData, kelvin: Boolean) {
 @Composable
 private fun Strip2(d: WeatherData, kelvin: Boolean) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        ConditionIcon(d.condition, 30.dp)
-        Spacer(GlanceModifier.width(8.dp))
+        ConditionIcon(d.condition, 38.dp)
+        Spacer(GlanceModifier.width(10.dp))
         Column {
-            MainTemps(d.tempC, kelvin = false, size = 17)
-            T(
-                if (kelvin) "${Units.k(d.tempC)} · ${d.condition.label}" else d.condition.label,
-                11, color = LocalColors.current.dim,
-            )
+            HeroTemps(d, kelvin, if (kelvin) 20 else 26, 14, stacked = false)
+            T(d.condition.label, 11, color = LocalColors.current.dim)
+            CityLine(d, 10)
         }
     }
 }
@@ -417,7 +541,7 @@ private fun Strip3(d: WeatherData, kelvin: Boolean) {
         ConditionIcon(d.condition, 36.dp)
         Spacer(GlanceModifier.width(10.dp))
         Column {
-            MainTemps(d.tempC, kelvin, if (kelvin) 17 else 22)
+            HeroTemps(d, kelvin, if (kelvin) 22 else 28, 15, stacked = false)
             if (st.showHiLo) {
                 T("H ${Units.both(d.today.hiC, cf())}   L ${Units.both(d.today.loC, cf())}", 11, color = LocalColors.current.dim)
             }
@@ -438,7 +562,7 @@ private fun Strip4(d: WeatherData, kelvin: Boolean) {
         ConditionIcon(d.condition, 40.dp)
         Spacer(GlanceModifier.width(10.dp))
         Column(modifier = GlanceModifier.defaultWeight()) {
-            MainTemps(d.tempC, kelvin, if (kelvin) 20 else 26)
+            HeroTemps(d, kelvin, if (kelvin) 24 else 32, 16, stacked = false)
             if (st.showFeels) T("Feels ${Units.both(d.feelsC, cf())}", 11, color = LocalColors.current.dim)
             if (st.showHiLo) {
                 T("H ${Units.both(d.today.hiC, cf())}   L ${Units.both(d.today.loC, cf())}", 11, color = LocalColors.current.dim)
@@ -452,19 +576,75 @@ private fun Strip4(d: WeatherData, kelvin: Boolean) {
     }
 }
 
-// ---- 2x2 (and 2x3) ----
+// ---- 2x2 and 2x3 ----
+
+@Composable
+private fun SquareTop(d: WeatherData, kelvin: Boolean) {
+    CityLine(d, 10)
+    Spacer(GlanceModifier.height(6.dp))
+    Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Column(modifier = GlanceModifier.defaultWeight()) {
+            HeroTemps(d, kelvin, if (kelvin) 28 else 34, 16, stacked = true)
+        }
+        ConditionIcon(d.condition, 46.dp)
+    }
+    Spacer(GlanceModifier.height(3.dp))
+    T(d.condition.label, 11, color = LocalColors.current.dim)
+}
 
 @Composable
 private fun Square2(d: WeatherData, kelvin: Boolean) {
+    Column(modifier = GlanceModifier.fillMaxSize()) {
+        SquareTop(d, kelvin)
+        Spacer(GlanceModifier.defaultWeight())
+        StatPanel(d)
+    }
+}
+
+@Composable
+private fun Square3(d: WeatherData, kelvin: Boolean) {
     val st = LocalStyle.current
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        if (st.showPlace) d.city?.let { T(it, 11, color = LocalColors.current.dim) }
-        ConditionIcon(d.condition, if (kelvin) 30.dp else 40.dp)
-        StackedTemps(d.tempC, kelvin, 26)
-        if (st.showHiLo) {
-            T("H ${Units.both(d.today.hiC, cf())}", 10, color = LocalColors.current.dim)
-            T("L ${Units.both(d.today.loC, cf())}", 10, color = LocalColors.current.dim)
+    Column(modifier = GlanceModifier.fillMaxSize()) {
+        SquareTop(d, kelvin)
+        Spacer(GlanceModifier.height(8.dp))
+        StatPanel(d)
+        Spacer(GlanceModifier.defaultWeight())
+        when {
+            st.showHourly -> HourlyStrip(d, 4)
+            st.showDaily -> DailyStrip(d, d.days.take(3))
         }
+    }
+}
+
+/** High/low, feels-like and chance of rain, side by side. */
+@Composable
+private fun StatPanel(d: WeatherData) {
+    val st = LocalStyle.current
+    Row(
+        modifier = GlanceModifier
+            .fillMaxWidth()
+            .background(LocalColors.current.panel)
+            .cornerRadius(14.dp)
+            .padding(vertical = 5.dp),
+    ) {
+        if (st.showHiLo) {
+            val (a, b) = Units.hiLoPair(d.today.hiC, d.today.loC, cf())
+            Stat("H / L", a.noUnit(), b)
+        }
+        if (st.showFeels) {
+            val (a, b) = Units.pair(d.feelsC, cf())
+            Stat("Feels", a, b)
+        }
+        Stat("Rain", "${d.today.precipProb}%", "chance")
+    }
+}
+
+@Composable
+private fun RowScope.Stat(label: String, value: String, sub: String) {
+    Column(modifier = GlanceModifier.defaultWeight(), horizontalAlignment = Alignment.CenterHorizontally) {
+        T(label.uppercase(), 9, color = LocalColors.current.dim)
+        T(value, 11, bold = true)
+        T(sub, 9, color = LocalColors.current.dim)
     }
 }
 
@@ -486,7 +666,7 @@ private fun Medium(d: WeatherData, alert: Alert?, kelvin: Boolean, cols: Int) {
         MainBlock(
             d, kelvin,
             iconSize = 44.dp,
-            tempSize = if (cols >= 4) (if (kelvin) 24 else 30) else (if (kelvin) 19 else 24),
+            tempSize = if (cols >= 4) (if (kelvin) 28 else 36) else (if (kelvin) 24 else 32),
         )
         if (hasBottom) {
             Spacer(GlanceModifier.defaultWeight())
@@ -517,7 +697,7 @@ private fun Large(d: WeatherData, alert: Alert?, kelvin: Boolean, cols: Int) {
         MainBlock(
             d, kelvin,
             iconSize = 52.dp,
-            tempSize = if (cols >= 4) (if (kelvin) 26 else 32) else (if (kelvin) 20 else 26),
+            tempSize = if (cols >= 4) (if (kelvin) 30 else 40) else (if (kelvin) 26 else 34),
         )
         if (showAlert && alert != null) {
             Spacer(GlanceModifier.height(8.dp))
@@ -569,7 +749,7 @@ private fun MainBlock(d: WeatherData, kelvin: Boolean, iconSize: Dp, tempSize: I
         ConditionIcon(d.condition, iconSize)
         Spacer(GlanceModifier.width(12.dp))
         Column {
-            MainTemps(d.tempC, kelvin, tempSize)
+            HeroTemps(d, kelvin, tempSize, (tempSize * 0.47f).toInt().coerceAtLeast(13), stacked = false)
             if (st.showFeels) T("Feels ${Units.both(d.feelsC, cf())}", 11, color = LocalColors.current.dim)
             if (st.showHiLo) {
                 T("H ${Units.both(d.today.hiC, cf())}   L ${Units.both(d.today.loC, cf())}", 11, color = LocalColors.current.dim)
@@ -656,4 +836,21 @@ class RefreshAction : ActionCallback {
     ) {
         WeatherScheduler.refreshNow(context)
     }
+}
+
+/** A soft light in the weather's color behind the content, fading out from one corner. */
+private fun glowBitmap(tint: Long, wDp: Float, hDp: Float, cx: Float, cy: Float): Bitmap {
+    // One pixel per dp is plenty for a blur this soft.
+    val w = wDp.roundToInt().coerceIn(1, 800)
+    val h = hDp.roundToInt().coerceIn(1, 800)
+    val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+    val rgb = (tint and 0xFFFFFF).toInt()
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        shader = RadialGradient(
+            w * cx, h * cy, max(w, h) * 0.9f,
+            intArrayOf(rgb or (0x38 shl 24), rgb), floatArrayOf(0f, 0.7f), Shader.TileMode.CLAMP,
+        )
+    }
+    Canvas(bmp).drawRect(0f, 0f, w.toFloat(), h.toFloat(), paint)
+    return bmp
 }

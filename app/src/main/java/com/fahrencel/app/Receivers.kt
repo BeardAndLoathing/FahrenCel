@@ -41,18 +41,32 @@ open class WeatherWidgetReceiver : GlanceAppWidgetReceiver() {
 
 class Widget1x1Receiver : WeatherWidgetReceiver()
 class Widget2x1Receiver : WeatherWidgetReceiver()
+class Widget3x1Receiver : WeatherWidgetReceiver()
 class Widget4x1Receiver : WeatherWidgetReceiver()
+class Widget1x2Receiver : WeatherWidgetReceiver()
 class Widget2x2Receiver : WeatherWidgetReceiver()
+class Widget3x2Receiver : WeatherWidgetReceiver()
+class Widget1x3Receiver : WeatherWidgetReceiver()
+class Widget2x3Receiver : WeatherWidgetReceiver()
+class Widget3x3Receiver : WeatherWidgetReceiver()
 class Widget4x3Receiver : WeatherWidgetReceiver()
+class Widget1x4Receiver : WeatherWidgetReceiver()
 
 /** The sizes offered in the app's "Add a widget" picker. */
 enum class WidgetSize(val cols: Int, val rows: Int, val label: String, val receiver: Class<out WeatherWidgetReceiver>) {
     S1x1(1, 1, "Tiny", Widget1x1Receiver::class.java),
     S2x1(2, 1, "Slim", Widget2x1Receiver::class.java),
+    S3x1(3, 1, "Bar", Widget3x1Receiver::class.java),
     S4x1(4, 1, "Wide bar", Widget4x1Receiver::class.java),
+    S1x2(1, 2, "Column", Widget1x2Receiver::class.java),
     S2x2(2, 2, "Square", Widget2x2Receiver::class.java),
+    S3x2(3, 2, "Compact", Widget3x2Receiver::class.java),
     S4x2(4, 2, "Medium", WeatherWidgetReceiver::class.java),
+    S1x3(1, 3, "Tall column", Widget1x3Receiver::class.java),
+    S2x3(2, 3, "Tall", Widget2x3Receiver::class.java),
+    S3x3(3, 3, "Big square", Widget3x3Receiver::class.java),
     S4x3(4, 3, "Large", Widget4x3Receiver::class.java),
+    S1x4(1, 4, "Tower", Widget1x4Receiver::class.java),
 }
 
 object PlacedWidgets {
@@ -88,7 +102,8 @@ object WidgetGrid {
     fun rows(heightDp: Float): Int = when {
         heightDp < 140f -> 1
         heightDp < 240f -> 2
-        else -> 3
+        heightDp < 330f -> 3
+        else -> 4
     }
 }
 

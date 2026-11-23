@@ -280,16 +280,16 @@ private fun SizePickerDialog(onPick: (WidgetSize) -> Unit, onDismiss: () -> Unit
     )
 }
 
-/** A 4x3 grid of cells with the chosen size filled in. */
+/** A 4x4 grid of cells with the chosen size filled in. */
 @Composable
 private fun SizeDiagram(cols: Int, rows: Int) {
     val empty = MaterialTheme.colorScheme.outlineVariant
     val full = MaterialTheme.colorScheme.primary
-    Canvas(Modifier.size(width = 52.dp, height = 39.dp)) {
+    Canvas(Modifier.size(width = 52.dp, height = 52.dp)) {
         val gap = 2.dp.toPx()
         val cw = (size.width - gap * 3) / 4
-        val ch = (size.height - gap * 2) / 3
-        for (c in 0 until 4) for (r in 0 until 3) {
+        val ch = (size.height - gap * 3) / 4
+        for (c in 0 until 4) for (r in 0 until 4) {
             val on = c < cols && r < rows
             drawRoundRect(
                 color = if (on) full else empty.copy(alpha = 0.5f),

@@ -103,6 +103,90 @@
                 android:resource="@xml/widget_4x3" />
         </receiver>
 
+        <receiver
+            android:name=".Widget3x1Receiver"
+            android:exported="true"
+            android:label="FahrenCel 3x1">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_3x1" />
+        </receiver>
+
+        <receiver
+            android:name=".Widget1x2Receiver"
+            android:exported="true"
+            android:label="FahrenCel 1x2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_1x2" />
+        </receiver>
+
+        <receiver
+            android:name=".Widget3x2Receiver"
+            android:exported="true"
+            android:label="FahrenCel 3x2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_3x2" />
+        </receiver>
+
+        <receiver
+            android:name=".Widget1x3Receiver"
+            android:exported="true"
+            android:label="FahrenCel 1x3">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_1x3" />
+        </receiver>
+
+        <receiver
+            android:name=".Widget2x3Receiver"
+            android:exported="true"
+            android:label="FahrenCel 2x3">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_2x3" />
+        </receiver>
+
+        <receiver
+            android:name=".Widget3x3Receiver"
+            android:exported="true"
+            android:label="FahrenCel 3x3">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_3x3" />
+        </receiver>
+
+        <receiver
+            android:name=".Widget1x4Receiver"
+            android:exported="true"
+            android:label="FahrenCel 1x4">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_1x4" />
+        </receiver>
+
         <!-- Told which widget was just added from the app's "Add widget" buttons. -->
         <receiver
             android:name=".PinResultReceiver"
