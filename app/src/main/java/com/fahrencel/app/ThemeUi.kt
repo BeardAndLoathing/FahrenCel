@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class, ExperimentalGlanceApi::class)
 
-package com.example.dualweather
+package com.fahrencel.app
 
 import android.widget.FrameLayout
 import android.widget.RemoteViews

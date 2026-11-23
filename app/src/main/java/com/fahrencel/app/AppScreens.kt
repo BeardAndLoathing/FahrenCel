@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 
-package com.example.dualweather
+package com.fahrencel.app
 
 import android.appwidget.AppWidgetManager
 import android.content.Context

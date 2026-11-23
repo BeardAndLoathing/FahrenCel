@@ -1,4 +1,4 @@
-package com.example.dualweather
+package com.fahrencel.app
 
 import android.content.Context
 import org.json.JSONObject

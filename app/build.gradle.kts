@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -6,11 +8,11 @@ plugins {
 
 android {
     // Change this (and the package folders) to your own unique ID before publishing.
-    namespace = "com.example.dualweather"
+    namespace = "com.fahrencel.app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.dualweather"
+        applicationId = "com.fahrencel.app"
         minSdk = 26
         targetSdk = 35
         // GitHub builds pass a run number so each release counts up; local builds use 1.
@@ -18,21 +20,34 @@ android {
         versionName = (project.findProperty("versionName") as String?) ?: "0.1"
     }
 
-    // Test builds are signed with a key kept in the repo, so an APK built on any computer
-    // (or by GitHub) installs over the previous one. Not for the Play Store: that needs a
-    // private release key kept out of the repo.
+    // Test builds are signed with a shared test key so an APK built on any computer (or by
+    // GitHub) installs over the previous one. The key and its passwords are NOT in the repo:
+    // they come from keystore.properties (gitignored, see keystore.properties.example) or from
+    // environment variables (GitHub Actions secrets). Without them, the normal debug key is used.
+    val keystoreProps = Properties().apply {
+        val f = rootProject.file("keystore.properties")
+        if (f.exists()) f.inputStream().use { load(it) }
+    }
+    fun signingValue(prop: String, env: String): String? =
+        keystoreProps.getProperty(prop) ?: System.getenv(env)
+
+    val testStoreFile = signingValue("storeFile", "FAHRENCEL_KEYSTORE_FILE")?.let { rootProject.file(it) }
+    val hasTestKey = testStoreFile?.exists() == true
+
     signingConfigs {
-        create("tester") {
-            storeFile = file("fahrencel-test.keystore")
-            storePassword = "fahrencel-test"
-            keyAlias = "fahrencel"
-            keyPassword = "fahrencel-test"
+        if (hasTestKey) {
+            create("tester") {
+                storeFile = testStoreFile
+                storePassword = signingValue("storePassword", "FAHRENCEL_KEYSTORE_PASSWORD")
+                keyAlias = signingValue("keyAlias", "FAHRENCEL_KEY_ALIAS")
+                keyPassword = signingValue("keyPassword", "FAHRENCEL_KEY_PASSWORD")
+            }
         }
     }
 
     buildTypes {
         debug {
-            signingConfig = signingConfigs.getByName("tester")
+            if (hasTestKey) signingConfig = signingConfigs.getByName("tester")
         }
         release {
             isMinifyEnabled = false

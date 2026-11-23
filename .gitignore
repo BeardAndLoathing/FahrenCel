@@ -1,8 +1,33 @@
-*.iml
+# Gradle
 .gradle/
-/local.properties
-/.idea/
+build/
+.kotlin/
+
+# Local configuration (SDK path etc.)
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+.navigation/
+
+# Signing keys and their passwords: never commit
+*.keystore
+*.jks
+keystore.properties
+
+# Generated / logs
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+*.log
+output-metadata.json
+
+# OS files
 .DS_Store
-/build/
-/app/build/
-/captures/
+Thumbs.db

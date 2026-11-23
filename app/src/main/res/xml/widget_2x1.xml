@@ -12,6 +12,6 @@
     android:targetCellHeight="1"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="0"
-    android:configure="com.example.dualweather.WidgetConfigActivity"
+    android:configure="com.fahrencel.app.WidgetConfigActivity"
     android:widgetFeatures="reconfigurable"
     android:widgetCategory="home_screen" />
