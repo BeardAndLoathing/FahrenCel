@@ -145,8 +145,8 @@ object WeatherRepository {
                 "&daily=wave_height_max&timezone=auto&forecast_days=1"
         )
     } catch (e: IOException) {
-        // The service answers with an error for places with no sea data.
-        if (e.message?.startsWith("HTTP 4") == true) "" else null
+        // The service answers 400 for places with no sea data. Other errors (e.g. 429) are failures.
+        if (e.message in NO_DATA) "" else null
     } catch (e: Exception) {
         null
     }
@@ -158,10 +158,13 @@ object WeatherRepository {
                 "&daily=river_discharge&forecast_days=7"
         )
     } catch (e: IOException) {
-        if (e.message?.startsWith("HTTP 4") == true) "" else null
+        if (e.message in NO_DATA) "" else null
     } catch (e: Exception) {
         null
     }
+
+    /** Replies that mean "no data for this place", as opposed to a failed request. */
+    private val NO_DATA = setOf("HTTP 400", "HTTP 404")
 
     fun httpGet(url: String): String {
         val conn = URL(url).openConnection() as HttpURLConnection
@@ -396,6 +399,9 @@ object WeatherStore {
             .remove(key("updated", placeId))
             .remove(key("marine", placeId))
             .remove(key("flood", placeId))
+            .remove(key("air_t", placeId))
+            .remove(key("marine_t", placeId))
+            .remove(key("flood_t", placeId))
             .apply()
     }
 

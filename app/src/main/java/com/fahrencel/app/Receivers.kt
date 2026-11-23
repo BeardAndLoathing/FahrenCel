@@ -24,6 +24,14 @@ open class WeatherWidgetReceiver : GlanceAppWidgetReceiver() {
         WeatherScheduler.refreshNow(context)
     }
 
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        super.onDeleted(context, appWidgetIds)
+        appWidgetIds.forEach {
+            WidgetPrefs.forget(context, it)
+            ThemeStore.setForWidget(context, it, null)
+        }
+    }
+
     override fun onDisabled(context: Context) {
         super.onDisabled(context)
         // Only stop background updates when no FahrenCel widget of any size is left.

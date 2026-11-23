@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URLEncoder
+import java.util.Locale
 
 /** A place to show weather for. "here" is the phone's own location. */
 data class Place(
@@ -143,7 +144,8 @@ object PlaceSearch {
             val o = arr.getJSONObject(i)
             Hit(
                 place = Place(
-                    id = "geo_" + o.optLong("id", (o.getDouble("latitude") * 1000).toLong()),
+                    id = if (o.has("id")) "geo_" + o.getLong("id")
+                    else "geo_%.3f_%.3f".format(Locale.US, o.getDouble("latitude"), o.getDouble("longitude")),
                     name = o.getString("name"),
                     region = if (o.isNull("admin1")) null else o.getString("admin1"),
                     country = if (o.isNull("country")) null else o.getString("country"),
@@ -207,6 +209,13 @@ object WidgetPrefs {
     fun setPlace(ctx: Context, appWidgetId: Int, placeId: String) {
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putString("place_$appWidgetId", placeId).apply()
+    }
+
+    /** Forgets a widget's settings once it is removed from the home screen. */
+    fun forget(ctx: Context, appWidgetId: Int) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .remove("place_$appWidgetId").remove("emph_$appWidgetId").apply()
+        clearPendingEdit(ctx, appWidgetId)
     }
 
     /** Remembers a widget that was just added from the app, so its editor can open next. */

@@ -72,6 +72,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.glance.ExperimentalGlanceApi
 import androidx.glance.appwidget.compose
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -675,6 +676,8 @@ fun PlaceSearchDialog(onPicked: (Place) -> Unit, onDismiss: () -> Unit) {
         status = "Searching…"
         val found = try {
             withContext(Dispatchers.IO) { PlaceSearch.search(query) }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             null
         }

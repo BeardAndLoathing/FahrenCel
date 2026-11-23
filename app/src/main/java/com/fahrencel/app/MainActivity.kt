@@ -29,6 +29,8 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // Only on a fresh start, not when the screen rotates.
+        if (savedInstanceState != null) return
         WeatherScheduler.schedulePeriodic(this)
         if (LocationHelper.hasPermission(this)) {
             refreshWithLocation()
