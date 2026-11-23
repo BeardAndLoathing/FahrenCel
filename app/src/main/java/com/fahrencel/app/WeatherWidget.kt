@@ -806,6 +806,8 @@ private fun HourlyStrip(d: WeatherData, count: Int) {
 
 @Composable
 private fun DailyStrip(d: WeatherData, days: List<Day>) {
+    // "Wed 11/25" on one line where columns are wide enough; otherwise the date goes underneath.
+    val oneLine = (LocalSize.current.width.value - 24f) / days.size.coerceAtLeast(1) >= 60f
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
@@ -818,7 +820,12 @@ private fun DailyStrip(d: WeatherData, days: List<Day>) {
                 modifier = GlanceModifier.defaultWeight(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                T("${d.dayName(day.time)} ${d.dayOfMonth(day.time)}", 11, bold = true)
+                if (oneLine) {
+                    T("${d.dayName(day.time)} ${d.shortDate(day.time)}", 10, bold = true)
+                } else {
+                    T(d.dayName(day.time), 11, bold = true)
+                    T(d.shortDate(day.time), 9, color = LocalColors.current.dim)
+                }
                 ConditionIcon(Condition.fromCode(day.code, isDay = true), 20.dp)
                 val (a, b) = Units.hiLoPair(day.hiC, day.loC, cf())
                 TempT(a, day.hiC, 11)

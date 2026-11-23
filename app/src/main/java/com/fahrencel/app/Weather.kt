@@ -102,11 +102,15 @@ data class WeatherData(
         Instant.ofEpochSecond(epochSec).atOffset(zone).dayOfWeek
             .getDisplayName(TextStyle.SHORT, Locale.getDefault())
 
-    /** "Nov 25" (or "25 Nov", per the phone's language and region). */
-    fun shortDate(epochSec: Long): String =
-        Instant.ofEpochSecond(epochSec).atOffset(zone).format(MONTH_DAY)
-
-    fun dayOfMonth(epochSec: Long): Int = Instant.ofEpochSecond(epochSec).atOffset(zone).dayOfMonth
+    /**
+     * Day and month in numbers, in the phone's own order: 11/25 in the US, 25/11 in Israel,
+     * 25.11 in Germany. Worked out each time so a language change shows up right away.
+     */
+    fun shortDate(epochSec: Long): String {
+        val locale = Locale.getDefault()
+        val pattern = DateFormat.getBestDateTimePattern(locale, "Md")
+        return Instant.ofEpochSecond(epochSec).atOffset(zone).format(DateTimeFormatter.ofPattern(pattern, locale))
+    }
 
     fun updatedClock(): String = clock(updatedAtMillis / 1000)
 
@@ -116,9 +120,6 @@ data class WeatherData(
 
     private companion object {
         val HHMM: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-        val MONTH_DAY: DateTimeFormatter = Locale.getDefault().let {
-            DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(it, "MMMd"), it)
-        }
     }
 }
 
