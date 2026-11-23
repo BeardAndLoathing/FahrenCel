@@ -507,7 +507,10 @@ private fun HourRows(d: WeatherData, n: Int) {
 private fun DayRows(d: WeatherData, n: Int) {
     d.days.take(n).forEach { day ->
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            T(d.dayName(day.time), 9, bold = true)
+            Column {
+                T(d.dayName(day.time), 9, bold = true)
+                T(d.shortDate(day.time), 8, color = LocalColors.current.dim)
+            }
             Spacer(GlanceModifier.defaultWeight())
             ConditionIcon(Condition.fromCode(day.code, isDay = true), 14.dp)
             Spacer(GlanceModifier.width(4.dp))
@@ -815,7 +818,7 @@ private fun DailyStrip(d: WeatherData, days: List<Day>) {
                 modifier = GlanceModifier.defaultWeight(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                T(d.dayName(day.time), 11, bold = true)
+                T("${d.dayName(day.time)} ${d.dayOfMonth(day.time)}", 11, bold = true)
                 ConditionIcon(Condition.fromCode(day.code, isDay = true), 20.dp)
                 val (a, b) = Units.hiLoPair(day.hiC, day.loC, cf())
                 TempT(a, day.hiC, 11)

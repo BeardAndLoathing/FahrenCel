@@ -471,6 +471,7 @@ private fun PlacePage(
                         }
                         DayRow(
                             name = if (i == 0) "Today" else data.dayName(d.time),
+                            date = data.shortDate(d.time),
                             day = d,
                             weekMin = weekMin,
                             weekMax = weekMax,
@@ -698,7 +699,7 @@ private fun HourChip(label: String, cond: Condition, tempC: Double, rain: Int, c
 
 /** One day: name, icon, rain chance, and the day's low-to-high range on a bar for the week. */
 @Composable
-private fun DayRow(name: String, day: Day, weekMin: Double, weekMax: Double, cFirst: Boolean) {
+private fun DayRow(name: String, date: String, day: Day, weekMin: Double, weekMax: Double, cFirst: Boolean) {
     val cond = Condition.fromCode(day.code, true)
     val (loA, loB) = Units.pair(day.loC, cFirst)
     val (hiA, hiB) = Units.pair(day.hiC, cFirst)
@@ -708,7 +709,10 @@ private fun DayRow(name: String, day: Day, weekMin: Double, weekMax: Double, cFi
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(name, style = MaterialTheme.typography.titleSmall, modifier = Modifier.width(58.dp))
+        Column(Modifier.width(58.dp)) {
+            Text(name, style = MaterialTheme.typography.titleSmall)
+            Text(date, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         Box(Modifier.width(44.dp), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(

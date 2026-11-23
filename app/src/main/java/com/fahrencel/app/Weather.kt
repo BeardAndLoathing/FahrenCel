@@ -1,6 +1,7 @@
 package com.fahrencel.app
 
 import android.content.Context
+import android.text.format.DateFormat
 import org.json.JSONObject
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -101,6 +102,12 @@ data class WeatherData(
         Instant.ofEpochSecond(epochSec).atOffset(zone).dayOfWeek
             .getDisplayName(TextStyle.SHORT, Locale.getDefault())
 
+    /** "Nov 25" (or "25 Nov", per the phone's language and region). */
+    fun shortDate(epochSec: Long): String =
+        Instant.ofEpochSecond(epochSec).atOffset(zone).format(MONTH_DAY)
+
+    fun dayOfMonth(epochSec: Long): Int = Instant.ofEpochSecond(epochSec).atOffset(zone).dayOfMonth
+
     fun updatedClock(): String = clock(updatedAtMillis / 1000)
 
     /** "Nachlaot, Jerusalem" when a neighborhood is known, else just the city. */
@@ -109,6 +116,9 @@ data class WeatherData(
 
     private companion object {
         val HHMM: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+        val MONTH_DAY: DateTimeFormatter = Locale.getDefault().let {
+            DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(it, "MMMd"), it)
+        }
     }
 }
 
