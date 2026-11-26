@@ -402,6 +402,9 @@ object ThemeStore {
         e.apply()
     }
 
+    /** Every saved look (main, dark, per widget) as raw JSON. */
+    fun savedJson(ctx: Context): List<String> = prefs(ctx).all.values.filterIsInstance<String>()
+
     /** What a particular widget should draw with. Pro looks fall back if Pro is off. */
     fun looks(ctx: Context, appWidgetId: Int): Looks {
         val pro = Pro.isPro(ctx)
@@ -437,6 +440,18 @@ object PhotoStore {
     private fun dir(ctx: Context) = File(ctx.filesDir, "photos").apply { mkdirs() }
 
     fun file(ctx: Context, name: String) = File(dir(ctx), name)
+
+    /**
+     * Deletes photos no saved look uses. Skips anything from the last day, so a photo
+     * picked in an editor that hasn't saved yet is safe.
+     */
+    fun deleteUnused(ctx: Context) {
+        val saved = ThemeStore.savedJson(ctx)
+        val dayAgo = System.currentTimeMillis() - 24 * 60 * 60 * 1000L
+        dir(ctx).listFiles()?.forEach { f ->
+            if (f.lastModified() < dayAgo && saved.none { it.contains(f.name) }) f.delete()
+        }
+    }
 
     /** Copies a picked photo in, upright and shrunk to a sensible size. Returns its name. */
     fun import(ctx: Context, uri: Uri): String? = try {

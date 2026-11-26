@@ -69,8 +69,10 @@ object Places {
     fun all(ctx: Context): List<Place> = listOf(here(ctx)) + saved(ctx)
 
     fun here(ctx: Context): Place {
-        val (lat, lon) = WeatherStore.loadLocation(ctx) ?: (31.7853 to 35.2122)
-        return Place(HERE, WeatherStore.hereLabel(ctx) ?: "My location", null, null, lat, lon)
+        // Unknown location: NaN coordinates and no name (older versions saved Jerusalem's as a stand-in).
+        val loc = WeatherStore.loadLocation(ctx)
+            ?: return Place(HERE, "My location", null, null, Double.NaN, Double.NaN)
+        return Place(HERE, WeatherStore.hereLabel(ctx) ?: "My location", null, null, loc.first, loc.second)
     }
 
     fun byId(ctx: Context, id: String): Place? =

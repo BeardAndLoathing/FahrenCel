@@ -11,7 +11,7 @@
     android:targetCellWidth="1"
     android:targetCellHeight="3"
     android:resizeMode="horizontal|vertical"
-    android:updatePeriodMillis="0"
+    android:updatePeriodMillis="14400000"
     android:configure="com.fahrencel.app.WidgetConfigActivity"
     android:widgetFeatures="reconfigurable"
     android:widgetCategory="home_screen" />

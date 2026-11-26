@@ -25,10 +25,12 @@ class WeatherWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ct
         val force = inputData.getBoolean(KEY_FORCE, false)
 
         try {
-            val (lat, lon) = LocationHelper.resolve(ctx)
-            withContext(Dispatchers.IO) {
-                LocationHelper.lookUpPlace(ctx, lat, lon)
-                fetchAndSave(ctx, Places.HERE, lat, lon, force)
+            // No location yet: nothing to fetch for "My location", and that's not a failure.
+            LocationHelper.resolve(ctx)?.let { (lat, lon) ->
+                withContext(Dispatchers.IO) {
+                    LocationHelper.lookUpPlace(ctx, lat, lon)
+                    fetchAndSave(ctx, Places.HERE, lat, lon, force)
+                }
             }
             anyOk = true
         } catch (e: CancellationException) {

@@ -419,7 +419,14 @@ private fun PlacePage(
             Card(Modifier.fillMaxWidth(), shape = CardShape, colors = cardColors()) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(place.name, style = MaterialTheme.typography.headlineSmall)
-                    Text("Loading weather…", style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        if (place.isHere && place.lat.isNaN()) {
+                            "Allow location for FahrenCel in your phone's settings, or add a city."
+                        } else {
+                            "Loading weather…"
+                        },
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
                     TextButton(onClick = onRefresh) { Text("Refresh") }
                 }
             }

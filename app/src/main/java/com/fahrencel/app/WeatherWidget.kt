@@ -96,6 +96,8 @@ private class Snapshot(
     val day: WidgetTheme,
     val night: WidgetTheme,
     val isNight: Boolean,
+    /** Shows "My location" but the phone's location has never been known. */
+    val needsLocation: Boolean,
 ) {
     val current: WidgetTheme get() = if (isNight) night else day
 
@@ -140,6 +142,7 @@ private class Snapshot(
                 day = ThemeRender.effective(looks.day, data, nowSec),
                 night = ThemeRender.effective(looks.night, data, nowSec),
                 isNight = night,
+                needsLocation = placeId == Places.HERE && WeatherStore.loadLocation(ctx) == null,
             )
         }
     }
@@ -406,7 +409,11 @@ private fun WidgetRoot(snap: Snapshot) {
             contentAlignment = Alignment.Center,
         ) {
             if (data == null) {
-                T("Tap to load weather", 12, align = TextAlign.Center)
+                T(
+                    if (snap.needsLocation) "Allow location or pick a city" else "Tap to load weather",
+                    12,
+                    align = TextAlign.Center,
+                )
             } else {
                 when {
                     cols == 1 && rows == 1 -> Tiny(data, kelvin)

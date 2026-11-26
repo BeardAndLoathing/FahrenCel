@@ -15,10 +15,6 @@ import java.util.Locale
 import kotlin.coroutines.resume
 
 object LocationHelper {
-    // Used only if we have never obtained a real location: Jerusalem (Machane Yehuda).
-    private const val DEFAULT_LAT = 31.7853
-    private const val DEFAULT_LON = 35.2122
-
     fun hasPermission(ctx: Context): Boolean =
         ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_COARSE_LOCATION) ==
             PackageManager.PERMISSION_GRANTED
@@ -35,8 +31,8 @@ object LocationHelper {
         return true
     }
 
-    /** Used by background refresh: last known fix, else the saved one, else the default. */
-    suspend fun resolve(ctx: Context): Pair<Double, Double> {
+    /** Used by background refresh: last known fix, else the saved one, else null (never had a location). */
+    suspend fun resolve(ctx: Context): Pair<Double, Double>? {
         if (hasPermission(ctx)) {
             val loc = try {
                 lastLocation(ctx)
@@ -48,7 +44,7 @@ object LocationHelper {
                 return loc.latitude to loc.longitude
             }
         }
-        return WeatherStore.loadLocation(ctx) ?: (DEFAULT_LAT to DEFAULT_LON)
+        return WeatherStore.loadLocation(ctx)
     }
 
     /** Looks up the city and neighborhood name (blocking; call off the main thread). */

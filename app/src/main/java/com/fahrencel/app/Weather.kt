@@ -241,6 +241,9 @@ object WeatherRepository {
             )
         }
 
+        // Daily times are local midnights; the last one already started is today, even in an old cached forecast.
+        val todayIdx = allDays.indexOfLast { it.time <= nowSec }.coerceAtLeast(0)
+
         // Air quality (optional)
         val airQ = try {
             parseAir(air, nowSec)
@@ -266,8 +269,8 @@ object WeatherRepository {
             pm25 = pm25,
             dust = dust,
             condition = Condition.current(code, isDay, wind, gust, visibility, pm25, dust),
-            today = allDays.first(),
-            days = allDays.drop(1),
+            today = allDays[todayIdx],
+            days = allDays.drop(todayIdx + 1),
             hours = hours,
             utcOffsetSec = offset,
             city = city,
@@ -380,6 +383,8 @@ object WeatherStore {
 
     fun load(ctx: Context, placeId: String = Places.HERE): WeatherData? {
         val p = prefs(ctx)
+        // Older versions saved Jerusalem's weather here when the location was unknown; hide it.
+        if (placeId == Places.HERE && loadLocation(ctx) == null) return null
         val forecast = p.getString(key("forecast", placeId), null) ?: return null
         val (city, area) = if (placeId == Places.HERE) {
             p.getString("city", null) to p.getString("area", null)

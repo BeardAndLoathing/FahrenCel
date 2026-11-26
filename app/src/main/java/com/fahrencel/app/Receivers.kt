@@ -32,6 +32,15 @@ open class WeatherWidgetReceiver : GlanceAppWidgetReceiver() {
         }
     }
 
+    /**
+     * The home screen calls this every 4 hours (updatePeriodMillis in the widget XML), and
+     * when a widget is added. A backup for phones whose battery savers stop the 30-minute job.
+     */
+    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+        super.onUpdate(context, appWidgetManager, appWidgetIds)
+        WeatherScheduler.refreshNow(context)
+    }
+
     override fun onDisabled(context: Context) {
         super.onDisabled(context)
         // Only stop background updates when no FahrenCel widget of any size is left.
